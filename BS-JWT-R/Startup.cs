@@ -1,8 +1,10 @@
 using BS_JWT_R.Helpers;
+using BS_JWT_R.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -62,6 +64,11 @@ namespace BS_JWT_R
                         new string[] {}
                     }
                 });
+            });
+
+            services.AddDbContext<JwtContext>(options =>
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("Default"));
             });
 
             services.AddTransient<JwtHelper>();
