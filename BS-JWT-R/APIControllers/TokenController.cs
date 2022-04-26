@@ -1,5 +1,6 @@
 ﻿using BS_JWT_R.Helpers;
 using BS_JWT_R.Models.VM;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -9,6 +10,7 @@ namespace BS_JWT_R.APIControllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class TokenController : ControllerBase
     {
         private readonly JwtHelper _jwt;
@@ -19,6 +21,7 @@ namespace BS_JWT_R.APIControllers
         }
 
         [HttpPost("signin")]
+        [AllowAnonymous]
         public IActionResult SignIn(LoginVM query)
         {
             if (ValidateUser(query))
@@ -28,13 +31,14 @@ namespace BS_JWT_R.APIControllers
 
             return BadRequest();
         }
-
+        [Authorize(Roles ="Superadmin")]
         [HttpGet("claims")]
         public IActionResult GetClaims()
         {
             return Ok(User.Claims.Select(x => new { x.Type, x.Value }));
         }
 
+        [Authorize(Roles ="Admin")]
         [HttpGet("username")]
         public IActionResult GetUserName()
         {
