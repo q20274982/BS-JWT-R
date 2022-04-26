@@ -1,3 +1,4 @@
+using BS_JWT_R.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -29,6 +30,8 @@ namespace BS_JWT_R
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "bs_JWT", Version = "v1"});
             });
+
+            services.AddTransient<JwtHelper>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
