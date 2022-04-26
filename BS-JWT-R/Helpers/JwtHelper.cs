@@ -1,23 +1,29 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using BS_JWT_R.Models;
+using BS_JWT_R.Models.DTO;
+using BS_JWT_R.Models.Entity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BS_JWT_R.Helpers
 {
     public class JwtHelper
     {
         private readonly IConfiguration Configuration;
-
-        public JwtHelper(IConfiguration configuration)
+        private readonly JwtContext _context;
+        public JwtHelper(IConfiguration configuration, JwtContext context)
         {
             Configuration = configuration;
+            _context = context;
         }
 
-        public string GenerateToken(string userName, int expireMinute = 30)
+        public async Task<AuthResultDto> GenerateToken(string userName, int expireMinute = 30)
         {
             var issuer = Configuration.GetValue<string>("JwtSettings:Issuer");
             var signKey = Configuration.GetValue<string>("JwtSettings:SignKey");
@@ -56,7 +62,30 @@ namespace BS_JWT_R.Helpers
             var securityToken = tokenHandler.CreateToken(tokenDescriptor);
             var serializeToken = tokenHandler.WriteToken(securityToken);
 
-            return serializeToken;
+            var refreshToken = new RefreshToken()
+            {
+                Username = userName,
+                Token = Guid.NewGuid().ToString()
+            };
+
+            await _context.RefreshTokens.AddAsync(refreshToken);
+            await _context.SaveChangesAsync();
+
+            return new AuthResultDto()
+            {
+                Token = serializeToken,
+                Success = true,
+                RefreshToken = refreshToken.Token
+            };
+        }
+
+        public RefreshToken GetRefreshToken(string refreshToken)
+        {
+            var source = _context.RefreshTokens.FirstOrDefault(x => x.Token == refreshToken);
+
+            if (source is null) return default;
+
+            return source;
         }
     }
 }
